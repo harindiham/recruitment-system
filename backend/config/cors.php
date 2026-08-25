@@ -4,16 +4,14 @@ return [
 
     'paths' => [
         'api/*',
+        'login',
+        'register-candidate',
         'sanctum/csrf-cookie',
     ],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:5175',
-        'http://localhost:5176',
         'https://recruitment-system-lovat.vercel.app',
     ],
 
