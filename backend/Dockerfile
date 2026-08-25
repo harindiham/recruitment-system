@@ -5,6 +5,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
     libsqlite3-dev \
@@ -37,9 +39,6 @@ RUN chown -R www-data:www-data \
 
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' \
     /etc/apache2/sites-available/000-default.conf
-
-RUN sed -i 's|<Directory /var/www/>|<Directory /var/www/html/public>|' \
-    /etc/apache2/apache2.conf
 
 EXPOSE 80
 
