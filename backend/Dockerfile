@@ -33,10 +33,13 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
+RUN printf 'sys_temp_dir = /tmp\n' > /usr/local/etc/php/conf.d/render-temp.ini
+
 RUN mkdir -p bootstrap/cache database storage/app/private storage/app/public storage/framework/cache/data \
         storage/framework/sessions storage/framework/views storage/logs \
     && touch database/database.sqlite \
     && chown -R www-data:www-data /var/www/html/bootstrap/cache /var/www/html/storage /var/www/html/database \
+    && chmod -R ug+rwX /var/www/html/bootstrap/cache /var/www/html/storage /var/www/html/database \
     && chmod 1777 /tmp
 
 
