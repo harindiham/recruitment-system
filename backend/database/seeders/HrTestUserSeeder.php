@@ -14,10 +14,10 @@ class HrTestUserSeeder extends Seeder
         $role = Role::where('name', 'HR Manager')->firstOrFail();
 
         User::updateOrCreate(
-            ['email' => 'sarah.perera@example.com'],
+            ['email' => 'hr@example.com'],
             [
                 'name' => 'Sarah Perera',
-                'password' => Hash::make('SarahTest123!'),
+                'password' => Hash::make('HRTest123!'),
                 'role_id' => $role->id,
             ]
         );
