@@ -46,6 +46,8 @@ function HRDashboard() {
     const [selectedVacancy, setSelectedVacancy] =
         useState(null);
 
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
     // Candidate management
     const [selectedCandidate, setSelectedCandidate] =
         useState(null);
@@ -961,27 +963,47 @@ function HRDashboard() {
 
                 {/* PROFILE */}
 
-                <button
-                    className="profile-button"
-                    onClick={handleLogout}
-                >
-                    <span>
-                        ◉
-                    </span>
+                <div className="profile-wrapper">
+    <button
+        className="profile-button"
+        onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+    >
+        <span>
+            ◉
+        </span>
 
-                    <div>
-                        <strong>
-                            {user?.name ||
-                                "HR Manager"}
-                        </strong>
+        <div>
+            <strong>
+                {user?.name || "HR Manager"}
+            </strong>
 
-                        <small>
-                            {user?.role ||
-                                "HR Manager"}
-                        </small>
-                    </div>
-                </button>
+            <small>
+                {user?.role || "HR Manager"}
+            </small>
+        </div>
+    </button>
 
+    {profileMenuOpen && (
+        <div className="profile-menu">
+            <button
+                className="profile-menu-item"
+                onClick={() => {
+                    // Profile can be implemented later
+                    setProfileMenuOpen(false);
+                }}
+            >
+                Profile
+            </button>
+
+            <button
+                className="profile-menu-item logout-item"
+                onClick={handleLogout}
+            >
+                Log out
+            </button>
+        </div>
+    )}
+</div>
             </aside>
 
             {/* =================================================

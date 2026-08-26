@@ -481,6 +481,13 @@ class ApplicationController extends Controller
 
         $relatedTerms = $this->getRelatedTerms();
 
+        $genericSkills = [
+            'communication', 'leadership', 'management', 'administration',
+            'documentation', 'training', 'performance', 'customer service',
+            'project management', 'excel', 'microsoft office',
+            'google workspace', 'policies', 'selection', 'screening',
+        ];
+
         $jobSkills = [];
 
 
@@ -496,6 +503,12 @@ class ApplicationController extends Controller
         foreach ($skillKeywords as $skill) {
             if ($this->containsTerm($jobText, $skill)) {
                 $jobSkills[] = $skill;
+            }
+        }
+
+        foreach ($this->getMeaningfulWords($job->title ?? '') as $titleSkill) {
+            if (!in_array($titleSkill, $genericSkills, true)) {
+                $jobSkills[] = $titleSkill;
             }
         }
 
@@ -517,12 +530,6 @@ class ApplicationController extends Controller
             }
         }
 
-        $genericSkills = [
-            'communication', 'leadership', 'management', 'administration',
-            'documentation', 'training', 'performance', 'customer service',
-            'project management', 'excel', 'microsoft office',
-            'google workspace', 'policies', 'selection', 'screening',
-        ];
         $weightedJobSkills = array_sum(array_map(
             fn ($skill) => in_array($skill, $genericSkills, true) ? 0.15 : 1,
             $jobSkills
@@ -680,11 +687,6 @@ class ApplicationController extends Controller
 
 
         if (false) {
-        /*
-        |--------------------------------------------------------------------------
-        | Legacy scoring block retained only for context during this migration.
-        |--------------------------------------------------------------------------
-        */
 
         $jobTitleWords = $this->getMeaningfulWords(
             $job->title ?? ''
