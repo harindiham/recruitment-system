@@ -383,11 +383,12 @@ class ApplicationController extends Controller
 
 
     /**
-    * Run the 40/30/20/10 matching system.
+        * Run the 30/25/20/15/10 matching system.
      *
-    * Job-specific skills = 40%
-     * Experience       = 30%
-    * Professional relevance = 20%
+        * Responsibilities = 30%
+        * Required skills = 25%
+        * Relevant experience = 20%
+        * Professional relevance = 15%
     * Education / certification = 10%
      */
     private function runMatching(Application $application)
@@ -531,9 +532,9 @@ class ApplicationController extends Controller
             $matchedSkills
         ));
         $skillScore = $weightedJobSkills > 0
-            ? ($weightedMatchedSkills / $weightedJobSkills) * 40
+            ? ($weightedMatchedSkills / $weightedJobSkills) * 25
             : 0;
-        $skillScore = round(min($skillScore, 40), 2);
+        $skillScore = round(min($skillScore, 25), 2);
 
         $requiredExperience = (float) ($job->minimum_experience ?? 0);
         $candidateExperience = 0;
@@ -554,7 +555,7 @@ class ApplicationController extends Controller
             fn ($term) => $this->containsTerm($cvText, $term)
         ));
         $titleScore = count($titleTerms) > 0
-            ? (count($matchedTitleTerms) / count($titleTerms)) * 14
+            ? (count($matchedTitleTerms) / count($titleTerms)) * 10
             : 0;
 
         $department = strtolower(trim($job->department ?? ''));
@@ -562,15 +563,34 @@ class ApplicationController extends Controller
         if ($department !== '' && $this->containsTerm($cvText, $department)) {
             $departmentMatchedTerms[] = $department;
         }
-        $departmentScore = $department !== '' && count($departmentMatchedTerms) > 0 ? 6 : 0;
-        $relevanceScore = round(min($titleScore + $departmentScore, 20), 2);
+        $departmentScore = $department !== '' && count($departmentMatchedTerms) > 0 ? 5 : 0;
+        $relevanceScore = round(min($titleScore + $departmentScore, 15), 2);
+
+        $responsibilityTerms = array_values(array_unique(array_merge(
+            $jobSkills,
+            $this->getMeaningfulPhrases(
+                implode(' ', [
+                    $job->description ?? '',
+                    $job->responsibilities ?? '',
+                ])
+            )
+        )));
+        $matchedResponsibilities = array_values(array_filter(
+            $responsibilityTerms,
+            fn ($term) => $this->containsTerm($cvText, $term)
+        ));
+        $responsibilitiesScore = count($responsibilityTerms) > 0
+            ? (count($matchedResponsibilities) / count($responsibilityTerms)) * 30
+            : 0;
+        $responsibilitiesScore = round($responsibilitiesScore, 2);
 
         $hasRelevantExperience =
             count($matchedTitleTerms) > 0 ||
             count($departmentMatchedTerms) > 0 ||
-            count(array_diff($matchedSkills, $genericSkills)) > 0;
+            count(array_diff($matchedSkills, $genericSkills)) > 0 ||
+            count($matchedResponsibilities) > 0;
         $experienceScore = $requiredExperience > 0 && $hasRelevantExperience
-            ? min(($candidateExperience / $requiredExperience) * 30, 30)
+            ? min(($candidateExperience / $requiredExperience) * 20, 20)
             : 0;
         $experienceScore = round($experienceScore, 2);
 
@@ -591,10 +611,11 @@ class ApplicationController extends Controller
             : 0;
         $educationScore = round($educationScore, 2);
 
-        $matchScore = round(
-            $skillScore + $experienceScore + $relevanceScore + $educationScore,
-            2
-        );
+        $matchScore = round(min(
+            $responsibilitiesScore + $skillScore + $experienceScore +
+                $relevanceScore + $educationScore,
+            100
+        ), 2);
         if (!$hasRelevantExperience) {
             $matchScore = min($matchScore, 39.99);
         }
@@ -621,22 +642,28 @@ class ApplicationController extends Controller
             'total_score' => $matchScore,
             'category' => $category,
             'breakdown' => [
+                'responsibilities' => [
+                    'score' => $responsibilitiesScore,
+                    'maximum' => 30,
+                    'matched' => $matchedResponsibilities,
+                    'requirements' => $responsibilityTerms,
+                ],
                 'skills' => [
                     'score' => $skillScore,
-                    'maximum' => 40,
+                    'maximum' => 25,
                     'matched' => $matchedSkills,
                     'job_keywords' => $jobSkills,
                     'details' => $skillMatches,
                 ],
                 'experience' => [
                     'score' => $experienceScore,
-                    'maximum' => 30,
+                    'maximum' => 20,
                     'required_years' => $requiredExperience,
                     'candidate_years' => $candidateExperience,
                 ],
                 'relevance' => [
                     'score' => $relevanceScore,
-                    'maximum' => 20,
+                    'maximum' => 15,
                     'title_score' => round($titleScore, 2),
                     'title_matches' => $matchedTitleTerms,
                     'department_score' => round($departmentScore, 2),
@@ -652,13 +679,11 @@ class ApplicationController extends Controller
         ];
 
 
+        if (false) {
         /*
         |--------------------------------------------------------------------------
-        | 10. Job title / department relevance
+        | Legacy scoring block retained only for context during this migration.
         |--------------------------------------------------------------------------
-        |
-        | Maximum = 20 points
-        |
         */
 
         $jobTitleWords = $this->getMeaningfulWords(
@@ -1023,6 +1048,7 @@ class ApplicationController extends Controller
                 ],
             ],
         ];
+        }
     }
 
 
@@ -1041,6 +1067,23 @@ class ApplicationController extends Controller
             '/(?<![a-z0-9])' . preg_quote($term, '/') . '(?![a-z0-9])/i',
             $text
         ) === 1;
+    }
+
+
+    private function getMeaningfulPhrases(string $text): array
+    {
+        $phrases = [];
+        $segments = preg_split('/[.;:\n]+/', strtolower($text));
+
+        foreach ($segments as $segment) {
+            $words = $this->getMeaningfulWords($segment);
+
+            for ($index = 0; $index < count($words) - 1; $index++) {
+                $phrases[] = $words[$index] . ' ' . $words[$index + 1];
+            }
+        }
+
+        return array_values(array_unique($phrases));
     }
 
 
