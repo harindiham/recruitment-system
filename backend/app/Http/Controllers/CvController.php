@@ -87,18 +87,7 @@ class CvController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | 4. Update the user's basic information
-        |--------------------------------------------------------------------------
-        */
-
-        $user->update([
-            'name' => $validated['full_name'],
-            'email' => $validated['email'],
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | 5. Update the candidate profile
+        | 4. Update the candidate profile
         |--------------------------------------------------------------------------
         */
 
