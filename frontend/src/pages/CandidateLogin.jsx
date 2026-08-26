@@ -15,7 +15,7 @@ function CandidateLogin() {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/login`,
+                `${import.meta.env.VITE_API_URL}/login/candidate`,
                 {
                     method: "POST",
                     headers: {
@@ -50,7 +50,7 @@ function CandidateLogin() {
             );
 
             // Make sure this account belongs to a candidate
-            if (!data.user.candidate_id) {
+            if (data.user.role !== "Candidate" || !data.user.candidate_id) {
                 setError(
                     "This account is not registered as a candidate."
                 );
@@ -204,7 +204,7 @@ function CandidateLogin() {
                                 type="button"
                                 onClick={() =>
                                     window.location.href =
-                                        "/candidate-register"
+                                        "/register-candidate"
                                 }
                             >
                                 Create account

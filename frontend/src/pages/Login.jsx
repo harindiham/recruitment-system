@@ -13,7 +13,7 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/login/hr`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -167,7 +167,7 @@ function Login() {
 
                         <div className="login-footer">
                             <span>Don't have an account?</span>
-                            <button type="button">
+                            <button type="button" onClick={() => window.location.href = "/register-hr"}>
                                 Create account
                             </button>
                         </div>

@@ -7,6 +7,8 @@ use App\Models\Candidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
+use App\Models\Role;
 
 class AuthController extends Controller
 {
@@ -24,8 +26,8 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-            'phone' => 'required|string|max:30',
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'phone' => 'nullable|string|max:30',
             'address' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:1000',
         ]);
@@ -51,7 +53,7 @@ class AuthController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role_id' => null,
+                'role_id' => Role::where('name', 'Candidate')->firstOrFail()->id,
             ]);
 
             /*
@@ -62,7 +64,7 @@ class AuthController extends Controller
 
             $candidate = Candidate::create([
                 'user_id' => $user->id,
-                'phone' => $validated['phone'],
+                'phone' => $validated['phone'] ?? null,
                 'address' => $validated['address'] ?? null,
                 'bio' => $validated['bio'] ?? null,
             ]);
@@ -82,11 +84,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Candidate registered successfully.',
 
-            'user' => [
-                'id' => $result['user']->id,
-                'name' => $result['user']->name,
-                'email' => $result['user']->email,
-            ],
+            'user' => $this->userPayload($result['user']),
 
             'candidate' => [
                 'id' => $result['candidate']->id,
@@ -94,6 +92,31 @@ class AuthController extends Controller
                 'address' => $result['candidate']->address,
                 'bio' => $result['candidate']->bio,
             ],
+
+            'token' => $result['user']->createToken('recruitment-system')->plainTextToken,
+        ], 201);
+    }
+
+    public function registerHr(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+        ]);
+
+        $role = Role::where('name', 'HR Manager')->firstOrFail();
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role_id' => $role->id,
+        ]);
+
+        return response()->json([
+            'message' => 'HR account created successfully.',
+            'token' => $user->createToken('recruitment-system')->plainTextToken,
+            'user' => $this->userPayload($user),
         ], 201);
     }
 
@@ -102,6 +125,21 @@ class AuthController extends Controller
      * Login user.
      */
     public function login(Request $request)
+    {
+        return $this->loginForRole($request);
+    }
+
+    public function loginCandidate(Request $request)
+    {
+        return $this->loginForRole($request, 'Candidate');
+    }
+
+    public function loginHr(Request $request)
+    {
+        return $this->loginForRole($request, 'HR Manager');
+    }
+
+    private function loginForRole(Request $request, ?string $requiredRole = null)
     {
         /*
         |--------------------------------------------------------------------------
@@ -126,6 +164,14 @@ class AuthController extends Controller
         ])
             ->where('email', $validated['email'])
             ->first();
+
+        if ($requiredRole && (!$user || $user->role?->name !== $requiredRole)) {
+            return response()->json([
+                'message' => $requiredRole === 'Candidate'
+                    ? 'This account is not registered as a Candidate.'
+                    : 'This account is not registered as an HR professional.',
+            ], 403);
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -176,6 +222,19 @@ class AuthController extends Controller
                 'candidate_id' => $user->candidate?->id,
             ],
         ]);
+    }
+
+    private function userPayload(User $user): array
+    {
+        $user->loadMissing(['role', 'candidate']);
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role?->name,
+            'candidate_id' => $user->candidate?->id,
+        ];
     }
 
 

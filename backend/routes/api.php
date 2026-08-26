@@ -21,11 +21,15 @@ Route::post(
     [AuthController::class, 'login']
 )->name('login');
 
+Route::post('/login/candidate', [AuthController::class, 'loginCandidate']);
+Route::post('/login/hr', [AuthController::class, 'loginHr']);
+
 // Candidate registration
 Route::post(
     '/register-candidate',
     [AuthController::class, 'registerCandidate']
 );
+Route::post('/register-hr', [AuthController::class, 'registerHr']);
 
 
 /*
@@ -42,10 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::post(
-        '/logout',
-        [AuthController::class, 'logout']
-    );
+    Route::post('/logout', [AuthController::class, 'logout']);
 
 
     /*
@@ -54,26 +55,18 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get(
-        '/job-positions',
-        [JobPositionController::class, 'index']
-    );
+    Route::get('/job-positions', [JobPositionController::class, 'index']);
 
-    Route::post(
-        '/job-positions',
-        [JobPositionController::class, 'store']
-    );
-
-    Route::get(
-        '/job-positions/{id}',
-        [JobPositionController::class, 'show']
-    );
-
-    Route::delete(
-        '/job-positions/{id}',
-        [JobPositionController::class, 'destroy']
-    );
-
+    Route::middleware('role:HR Manager')->group(function () {
+        Route::post('/job-positions', [JobPositionController::class, 'store']);
+        Route::get('/job-positions/{id}', [JobPositionController::class, 'show']);
+        Route::delete('/job-positions/{id}', [JobPositionController::class, 'destroy']);
+        Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
+        Route::post('/applications/{id}/evaluate', [ApplicationController::class, 'evaluate']);
+        Route::get('/candidates', [CandidateController::class, 'index']);
+        Route::post('/candidates', [CandidateController::class, 'store']);
+        Route::get('/candidates/{id}', [CandidateController::class, 'show']);
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -81,42 +74,17 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get(
-        '/candidates',
-        [CandidateController::class, 'index']
-    );
-
-    Route::post(
-        '/candidates',
-        [CandidateController::class, 'store']
-    );
-
-    Route::get(
-        '/candidates/{id}',
-        [CandidateController::class, 'show']
-    );
-
-
     /*
     |--------------------------------------------------------------------------
     | CV Management
     |--------------------------------------------------------------------------
     */
 
-    Route::post(
-        '/cvs',
-        [CvController::class, 'store']
-    );
-
-    Route::get(
-        '/cvs',
-        [CvController::class, 'index']
-    );
-
-    Route::get(
-        '/cvs/{id}',
-        [CvController::class, 'show']
-    );
+    Route::middleware('role:Candidate')->group(function () {
+        Route::post('/cvs', [CvController::class, 'store']);
+        Route::get('/cvs', [CvController::class, 'index']);
+        Route::get('/cvs/{id}', [CvController::class, 'show']);
+    });
 
 
     /*
@@ -130,7 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
         [ApplicationController::class, 'index']
     );
 
-    Route::post(
+    Route::middleware('role:Candidate')->post(
         '/applications',
         [ApplicationController::class, 'store']
     );
@@ -138,29 +106,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get(
         '/applications/{id}',
         [ApplicationController::class, 'show']
-    );
-
-    Route::patch(
-        '/applications/{id}/status',
-        [
-            ApplicationController::class,
-            'updateStatus'
-        ]
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Evaluation
-    |--------------------------------------------------------------------------
-    */
-
-    Route::post(
-        '/applications/{id}/evaluate',
-        [
-            ApplicationController::class,
-            'evaluate'
-        ]
     );
 
 });
