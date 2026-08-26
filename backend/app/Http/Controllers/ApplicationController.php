@@ -383,11 +383,12 @@ class ApplicationController extends Controller
 
 
     /**
-     * Run the 50/30/20 matching system.
+    * Run the 40/30/20/10 matching system.
      *
-     * Skills / keywords = 50%
+    * Job-specific skills = 40%
      * Experience       = 30%
-     * Relevance        = 20%
+    * Professional relevance = 20%
+    * Education / certification = 10%
      */
     private function runMatching(Application $application)
     {
@@ -483,230 +484,172 @@ class ApplicationController extends Controller
 
 
         foreach ($relatedTerms as $canonicalSkill => $terms) {
-
             foreach ($terms as $term) {
-
-                if (
-                    Str::contains(
-                        $jobText,
-                        strtolower($term)
-                    )
-                ) {
-
+                if ($this->containsTerm($jobText, $term)) {
                     $jobSkills[] = $canonicalSkill;
-
                     break;
                 }
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | 4. Check original skill list
-        |--------------------------------------------------------------------------
-        */
-
         foreach ($skillKeywords as $skill) {
-
-            if (
-                Str::contains(
-                    $jobText,
-                    strtolower($skill)
-                )
-            ) {
-
-                if (!in_array($skill, $jobSkills)) {
-                    $jobSkills[] = $skill;
-                }
+            if ($this->containsTerm($jobText, $skill)) {
+                $jobSkills[] = $skill;
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | 5. Remove duplicate skills
-        |--------------------------------------------------------------------------
-        */
-
-        $jobSkills = array_values(
-            array_unique($jobSkills)
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 6. Compare job skills with CV
-        |--------------------------------------------------------------------------
-        */
-
+        $jobSkills = array_values(array_unique($jobSkills));
         $matchedSkills = [];
         $skillMatches = [];
 
-
         foreach ($jobSkills as $skill) {
-
-            $termsToCheck =
-                $relatedTerms[$skill] ?? [$skill];
-
-            $matched = false;
-            $matchedTerm = null;
-
-
+            $termsToCheck = $relatedTerms[$skill] ?? [$skill];
             foreach ($termsToCheck as $term) {
-
-                if (
-                    Str::contains(
-                        $cvText,
-                        strtolower($term)
-                    )
-                ) {
-
-                    $matched = true;
-                    $matchedTerm = $term;
-
+                if ($this->containsTerm($cvText, $term)) {
+                    $matchedSkills[] = $skill;
+                    $skillMatches[] = [
+                        'required_skill' => $skill,
+                        'matched_term' => $term,
+                    ];
                     break;
                 }
             }
-
-
-            if (
-                !$matched &&
-                Str::contains(
-                    $cvText,
-                    strtolower($skill)
-                )
-            ) {
-
-                $matched = true;
-                $matchedTerm = $skill;
-            }
-
-
-            if ($matched) {
-
-                $matchedSkills[] = $skill;
-
-                $skillMatches[] = [
-                    'required_skill' => $skill,
-                    'matched_term' => $matchedTerm
-                ];
-            }
         }
 
+        $genericSkills = [
+            'communication', 'leadership', 'management', 'administration',
+            'documentation', 'training', 'performance', 'customer service',
+            'project management', 'excel', 'microsoft office',
+            'google workspace', 'policies', 'selection', 'screening',
+        ];
+        $weightedJobSkills = array_sum(array_map(
+            fn ($skill) => in_array($skill, $genericSkills, true) ? 0.15 : 1,
+            $jobSkills
+        ));
+        $weightedMatchedSkills = array_sum(array_map(
+            fn ($skill) => in_array($skill, $genericSkills, true) ? 0.15 : 1,
+            $matchedSkills
+        ));
+        $skillScore = $weightedJobSkills > 0
+            ? ($weightedMatchedSkills / $weightedJobSkills) * 40
+            : 0;
+        $skillScore = round(min($skillScore, 40), 2);
 
-        /*
-        |--------------------------------------------------------------------------
-        | 7. Calculate skill score
-        |--------------------------------------------------------------------------
-        |
-        | Maximum = 50 points
-        |
-        */
-
-        if (count($jobSkills) > 0) {
-
-            $skillScore = (
-                count($matchedSkills) /
-                count($jobSkills)
-            ) * 50;
-
-        } else {
-
-            $skillScore = 0;
-        }
-
-
-        $skillScore = round(
-            min($skillScore, 50),
-            2
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | 8. Experience match
-        |--------------------------------------------------------------------------
-        |
-        | Maximum = 30 points
-        |
-        */
-
-        $requiredExperience = (float) (
-            $job->minimum_experience ?? 0
-        );
-
+        $requiredExperience = (float) ($job->minimum_experience ?? 0);
         $candidateExperience = 0;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Search years
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            preg_match(
-                '/([0-9]+(?:\.[0-9]+)?)\+?\s*(?:years?|yrs?)/i',
-                $application->cv->extracted_text,
-                $matches
-            )
-        ) {
-
-            $candidateExperience =
-                (float) $matches[1];
+        if (preg_match('/([0-9]+(?:\.[0-9]+)?)\+?\s*(?:years?|yrs?)/i', $cvText, $matches)) {
+            $candidateExperience = (float) $matches[1];
+        } elseif (preg_match('/([0-9]+(?:\.[0-9]+)?)\+?\s*(?:months?|mos?)/i', $cvText, $matches)) {
+            $candidateExperience = round(((float) $matches[1]) / 12, 2);
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Search months
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $candidateExperience == 0 &&
-            preg_match(
-                '/([0-9]+(?:\.[0-9]+)?)\+?\s*(?:months?|mos?)/i',
-                $application->cv->extracted_text,
-                $matches
-            )
-        ) {
-
-            $candidateExperience = round(
-                ((float) $matches[1]) / 12,
-                2
-            );
+        $jobTitleWords = $this->getMeaningfulWords($job->title ?? '');
+        $titleTerms = [];
+        foreach ($jobTitleWords as $word) {
+            $titleTerms = array_merge($titleTerms, $relatedTerms[$word] ?? [$word]);
         }
+        $titleTerms = array_values(array_unique($titleTerms));
+        $matchedTitleTerms = array_values(array_filter(
+            $titleTerms,
+            fn ($term) => $this->containsTerm($cvText, $term)
+        ));
+        $titleScore = count($titleTerms) > 0
+            ? (count($matchedTitleTerms) / count($titleTerms)) * 14
+            : 0;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | 9. Calculate experience score
-        |--------------------------------------------------------------------------
-        */
-
-        if ($requiredExperience <= 0) {
-
-            $experienceScore = 0;
-
-        } elseif ($candidateExperience >= $requiredExperience) {
-
-            $experienceScore = 30;
-
-        } else {
-
-            $experienceScore = (
-                $candidateExperience /
-                $requiredExperience
-            ) * 30;
+        $department = strtolower(trim($job->department ?? ''));
+        $departmentMatchedTerms = [];
+        if ($department !== '' && $this->containsTerm($cvText, $department)) {
+            $departmentMatchedTerms[] = $department;
         }
+        $departmentScore = $department !== '' && count($departmentMatchedTerms) > 0 ? 6 : 0;
+        $relevanceScore = round(min($titleScore + $departmentScore, 20), 2);
 
+        $hasRelevantExperience =
+            count($matchedTitleTerms) > 0 ||
+            count($departmentMatchedTerms) > 0 ||
+            count(array_diff($matchedSkills, $genericSkills)) > 0;
+        $experienceScore = $requiredExperience > 0 && $hasRelevantExperience
+            ? min(($candidateExperience / $requiredExperience) * 30, 30)
+            : 0;
+        $experienceScore = round($experienceScore, 2);
 
-        $experienceScore = round(
-            min($experienceScore, 30),
+        $educationTerms = [
+            'degree', 'diploma', 'bachelor', 'master', 'phd', 'certification',
+            'certified', 'license', 'licence', 'cpr', 'bls', 'rn',
+        ];
+        $jobEducationTerms = array_values(array_filter(
+            $educationTerms,
+            fn ($term) => $this->containsTerm($jobText, $term)
+        ));
+        $matchedEducationTerms = array_values(array_filter(
+            $jobEducationTerms,
+            fn ($term) => $this->containsTerm($cvText, $term)
+        ));
+        $educationScore = count($jobEducationTerms) > 0
+            ? (count($matchedEducationTerms) / count($jobEducationTerms)) * 10
+            : 0;
+        $educationScore = round($educationScore, 2);
+
+        $matchScore = round(
+            $skillScore + $experienceScore + $relevanceScore + $educationScore,
             2
         );
+        if (!$hasRelevantExperience) {
+            $matchScore = min($matchScore, 39.99);
+        }
+
+        if ($matchScore >= 80) {
+            $category = 'Strong Match';
+        } elseif ($matchScore >= 60) {
+            $category = 'Good Match';
+        } elseif ($matchScore >= 40) {
+            $category = 'Possible Match';
+        } else {
+            $category = 'Weak Match';
+        }
+
+        $application->update([
+            'match_score' => $matchScore,
+            'category' => $category,
+            'skills_score' => $skillScore,
+            'experience_score' => $experienceScore,
+            'relevance_score' => $relevanceScore,
+        ]);
+
+        return [
+            'total_score' => $matchScore,
+            'category' => $category,
+            'breakdown' => [
+                'skills' => [
+                    'score' => $skillScore,
+                    'maximum' => 40,
+                    'matched' => $matchedSkills,
+                    'job_keywords' => $jobSkills,
+                    'details' => $skillMatches,
+                ],
+                'experience' => [
+                    'score' => $experienceScore,
+                    'maximum' => 30,
+                    'required_years' => $requiredExperience,
+                    'candidate_years' => $candidateExperience,
+                ],
+                'relevance' => [
+                    'score' => $relevanceScore,
+                    'maximum' => 20,
+                    'title_score' => round($titleScore, 2),
+                    'title_matches' => $matchedTitleTerms,
+                    'department_score' => round($departmentScore, 2),
+                    'department_matches' => $departmentMatchedTerms,
+                    'education' => [
+                        'score' => $educationScore,
+                        'maximum' => 10,
+                        'matched' => $matchedEducationTerms,
+                        'job_requirements' => $jobEducationTerms,
+                    ],
+                ],
+            ],
+        ];
 
 
         /*
@@ -1080,6 +1023,24 @@ class ApplicationController extends Controller
                 ],
             ],
         ];
+    }
+
+
+    /**
+     * Match a whole word or phrase rather than an arbitrary substring.
+     */
+    private function containsTerm(string $text, string $term): bool
+    {
+        $term = trim(strtolower($term));
+
+        if ($term === '') {
+            return false;
+        }
+
+        return preg_match(
+            '/(?<![a-z0-9])' . preg_quote($term, '/') . '(?![a-z0-9])/i',
+            $text
+        ) === 1;
     }
 
 
