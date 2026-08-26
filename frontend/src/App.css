@@ -167,8 +167,8 @@
     letter-spacing: 2px;
     font-weight: 600;
     margin-bottom: 12px;
-    opacity: 0.55;
-    color: black;
+    opacity: 1;
+    color: #4c1d95;
 }
 
 .login-form-wrapper h1 {
@@ -214,6 +214,10 @@
     outline: none;
 
     transition: 0.2s ease;
+}
+
+.input-group input::placeholder {
+    color: #6b7280;
 }
 
 .input-group input:focus {
