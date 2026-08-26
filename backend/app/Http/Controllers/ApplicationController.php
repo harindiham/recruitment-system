@@ -613,8 +613,7 @@ class ApplicationController extends Controller
 
         } else {
 
-            // Neutral score when no recognised skills exist
-            $skillScore = 25;
+            $skillScore = 0;
         }
 
 
@@ -689,7 +688,7 @@ class ApplicationController extends Controller
 
         if ($requiredExperience <= 0) {
 
-            $experienceScore = 30;
+            $experienceScore = 0;
 
         } elseif ($candidateExperience >= $requiredExperience) {
 
@@ -916,12 +915,41 @@ class ApplicationController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $genericSkills = [
+            'communication',
+            'leadership',
+            'management',
+            'administration',
+            'documentation',
+            'training',
+            'performance',
+            'customer service',
+            'project management',
+            'excel',
+            'microsoft office',
+            'google workspace',
+        ];
+
+        $meaningfulSkillMatches = array_diff(
+            $matchedSkills,
+            $genericSkills
+        );
+
+        $hasMeaningfulRelevance =
+            count($matchedTitleTerms) > 0 ||
+            count($departmentMatchedTerms) > 0 ||
+            count($meaningfulSkillMatches) > 0;
+
         $matchScore = round(
             $skillScore +
             $experienceScore +
             $relevanceScore,
             2
         );
+
+        if (!$hasMeaningfulRelevance) {
+            $matchScore = min($matchScore, 39.99);
+        }
 
 
         /*
@@ -1080,6 +1108,12 @@ class ApplicationController extends Controller
                 'human resources',
                 'human resource',
                 'hr'
+            ],
+
+            'hr' => [
+                'hr',
+                'human resources',
+                'human resource'
             ],
 
             'employee relations' => [
