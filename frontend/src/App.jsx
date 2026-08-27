@@ -15,21 +15,30 @@ function App() {
 
     const [path, setPath] = useState(getPath());
 
+    // Custom navigation event
     useEffect(() => {
-        const handlePopState = () => {
+        const handleNavigation = () => {
             setPath(getPath());
         };
 
-        window.addEventListener("popstate", handlePopState);
+        window.addEventListener("popstate", handleNavigation);
+        window.addEventListener("navigate", handleNavigation);
 
         return () => {
-            window.removeEventListener("popstate", handlePopState);
+            window.removeEventListener("popstate", handleNavigation);
+            window.removeEventListener("navigate", handleNavigation);
         };
     }, []);
 
+    // Navigation function
+    const navigate = (to) => {
+        window.history.pushState({}, "", `/recruitment-system${to}`);
+        window.dispatchEvent(new Event("navigate"));
+    };
+
     // HOME
     if (path === "/") {
-        return <Home />;
+        return <Home navigate={navigate} />;
     }
 
     // HR DASHBOARD
@@ -37,31 +46,31 @@ function App() {
         const user = JSON.parse(localStorage.getItem("user") || "null");
 
         if (user?.role !== "HR Manager") {
-            window.location.replace("/recruitment-system/hr-login");
+            navigate("/hr-login");
             return null;
         }
 
-        return <HRDashboard />;
+        return <HRDashboard navigate={navigate} />;
     }
 
     // HR LOGIN
     if (path === "/hr-login") {
-        return <Login />;
+        return <Login navigate={navigate} />;
     }
 
     // HR REGISTER
     if (path === "/register-hr") {
-        return <Register accountType="hr" />;
+        return <Register accountType="hr" navigate={navigate} />;
     }
 
     // CANDIDATE LOGIN
     if (path === "/candidate-login") {
-        return <CandidateLogin />;
+        return <CandidateLogin navigate={navigate} />;
     }
 
     // CANDIDATE REGISTER
     if (path === "/register-candidate") {
-        return <Register accountType="candidate" />;
+        return <Register accountType="candidate" navigate={navigate} />;
     }
 
     // CANDIDATE DASHBOARD
@@ -71,16 +80,14 @@ function App() {
         );
 
         if (user?.role !== "Candidate" || !user?.candidate_id) {
-            window.location.replace(
-                "/recruitment-system/candidate-login"
-            );
+            navigate("/candidate-login");
             return null;
         }
 
-        return <CandidateDashboard />;
+        return <CandidateDashboard navigate={navigate} />;
     }
 
-    return <Home />;
+    return <Home navigate={navigate} />;
 }
 
 export default App;
