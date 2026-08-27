@@ -13,8 +13,10 @@ return [
 
     'allowed_origins' => [
         'https://recruitment-system-lovat.vercel.app',
-        'http://localhost:5176',
+        'https://harindiham.github.io',
         'http://localhost:5173',
+        'http://localhost:5175',
+        'http://localhost:5176',
     ],
 
     'allowed_origins_patterns' => [],
