@@ -167,7 +167,7 @@ function Login() {
 
                         <div className="login-footer">
                             <span>Don't have an account?</span>
-                            <button type="button" onClick={() => window.location.href = "/register-hr"}>
+                            <button type="button" onClick={() => window.location.href = "/recruitment-system/register-hr"}>
                                 Create account
                             </button>
                         </div>

@@ -62,7 +62,7 @@ function CandidateLogin() {
             }
 
             // Login successful → Candidate Dashboard
-            window.location.href = "/candidate-dashboard";
+            window.location.href = "/recruitment-system/candidate-dashboard";
 
         } catch (error) {
             console.error("Login error:", error);
@@ -204,7 +204,7 @@ function CandidateLogin() {
                                 type="button"
                                 onClick={() =>
                                     window.location.href =
-                                        "/register-candidate"
+                                        "/recruitment-system/register-candidate"
                                 }
                             >
                                 Create account

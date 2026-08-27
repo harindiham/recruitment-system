@@ -36,7 +36,7 @@ const Home = () => {
 
                     <button
                         className="nav-login"
-                        onClick={() => window.location.href = "/candidate-login"}
+                        onClick={() => window.location.href = "/recruitment-system/candidate-login"}
                     >
                         Log in
                     </button>
@@ -93,7 +93,7 @@ const Home = () => {
                             <button
                                 className="hero-secondary-button"
                                 onClick={() =>
-                                    window.location.href = "/candidate-login"
+                                    window.location.href = "/recruitment-system/candidate-login"
                                 }
                             >
                                 I'm a candidate
@@ -338,7 +338,7 @@ const Home = () => {
 
                             <button
                                 onClick={() =>
-                                    window.location.href = "/candidate-login"
+                                    window.location.href = "/recruitment-system/candidate-login"
                                 }
                             >
                                 Candidate login
@@ -382,7 +382,7 @@ const Home = () => {
 
                             <button
                                 onClick={() =>
-                                    window.location.href = "/hr-login"
+                                    window.location.href = "/recruitment-system/hr-login"
                                 }
                             >
                                 HR login
@@ -562,7 +562,7 @@ const Home = () => {
                             <button
                                 onClick={() =>
                                     window.location.href =
-                                        "/register-candidate"
+                                        "/recruitment-system/register-candidate"
                                 }
                             >
 
@@ -588,7 +588,7 @@ const Home = () => {
                             <button
                                 onClick={() =>
                                     window.location.href =
-                                        "/register-hr"
+                                        "/recruitment-system/register-hr"
                                 }
                             >
 

@@ -56,7 +56,7 @@ function Register({ accountType }) {
             } else {
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("user", JSON.stringify(data.user));
-                window.location.href = "/hr-dashboard";
+                window.location.href = "/recruitment-system/hr-dashboard";
             }
         } catch (requestError) {
             setError(requestError.message || "Unable to connect to the server.");

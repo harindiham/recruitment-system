@@ -150,7 +150,7 @@ function CandidateDashboard() {
         localStorage.removeItem("candidate_user");
 
         window.location.href =
-            "/candidate-login";
+            "/recruitment-system/candidate-login";
     };
 
 
