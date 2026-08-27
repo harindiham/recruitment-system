@@ -10,12 +10,18 @@ import Register from "./pages/Register";
 import "./App.css";
 
 function App() {
-    const getPath = () =>
-        window.location.pathname.replace("/recruitment-system", "") || "/";
+    const getPath = () => {
+        return (
+            window.location.pathname.replace(
+                "/recruitment-system",
+                ""
+            ) || "/"
+        );
+    };
 
     const [path, setPath] = useState(getPath());
 
-    // Custom navigation event
+    // Listen for browser navigation
     useEffect(() => {
         const handleNavigation = () => {
             setPath(getPath());
@@ -25,14 +31,25 @@ function App() {
         window.addEventListener("navigate", handleNavigation);
 
         return () => {
-            window.removeEventListener("popstate", handleNavigation);
-            window.removeEventListener("navigate", handleNavigation);
+            window.removeEventListener(
+                "popstate",
+                handleNavigation
+            );
+            window.removeEventListener(
+                "navigate",
+                handleNavigation
+            );
         };
     }, []);
 
-    // Navigation function
+    // Custom navigation function
     const navigate = (to) => {
-        window.history.pushState({}, "", `/recruitment-system${to}`);
+        window.history.pushState(
+            {},
+            "",
+            `/recruitment-system${to}`
+        );
+
         window.dispatchEvent(new Event("navigate"));
     };
 
@@ -42,10 +59,10 @@ function App() {
     }
 
     // HR DASHBOARD
-    if (path === "/hr-dashboard"
-	path=="/recruitment-system/hr-dashboard") {
-       
-	 const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (path === "/hr-dashboard") {
+        const user = JSON.parse(
+            localStorage.getItem("user") || "null"
+        );
 
         if (user?.role !== "HR Manager") {
             navigate("/hr-login");
@@ -62,17 +79,29 @@ function App() {
 
     // HR REGISTER
     if (path === "/register-hr") {
-        return <Register accountType="hr" navigate={navigate} />;
+        return (
+            <Register
+                accountType="hr"
+                navigate={navigate}
+            />
+        );
     }
 
     // CANDIDATE LOGIN
     if (path === "/candidate-login") {
-        return <CandidateLogin navigate={navigate} />;
+        return (
+            <CandidateLogin navigate={navigate} />
+        );
     }
 
     // CANDIDATE REGISTER
     if (path === "/register-candidate") {
-        return <Register accountType="candidate" navigate={navigate} />;
+        return (
+            <Register
+                accountType="candidate"
+                navigate={navigate}
+            />
+        );
     }
 
     // CANDIDATE DASHBOARD
@@ -81,14 +110,20 @@ function App() {
             localStorage.getItem("candidate_user") || "null"
         );
 
-        if (user?.role !== "Candidate" || !user?.candidate_id) {
+        if (
+            user?.role !== "Candidate" ||
+            !user?.candidate_id
+        ) {
             navigate("/candidate-login");
             return null;
         }
 
-        return <CandidateDashboard navigate={navigate} />;
+        return (
+            <CandidateDashboard navigate={navigate} />
+        );
     }
 
+    // Fallback
     return <Home navigate={navigate} />;
 }
 
