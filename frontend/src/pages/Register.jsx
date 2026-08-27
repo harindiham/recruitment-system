@@ -1,10 +1,12 @@
 import { useState } from "react";
 import "./Register.css";
 
-const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const passwordRule =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 function Register({ accountType }) {
     const isCandidate = accountType === "candidate";
+
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -18,48 +20,85 @@ function Register({ accountType }) {
         setError("");
 
         if (!passwordRule.test(password)) {
-            setError("Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.");
+            setError(
+                "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
+            );
             return;
         }
+
         if (password !== confirmation) {
             setError("Passwords do not match.");
             return;
         }
 
         setLoading(true);
+
         try {
-            const endpoint = isCandidate ? "/register-candidate" : "/register-hr";
-            const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password,
-                    password_confirmation: confirmation,
-                }),
-            });
+            const endpoint = isCandidate
+                ? "/register-candidate"
+                : "/register-hr";
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}${endpoint}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        password,
+                        password_confirmation: confirmation,
+                    }),
+                }
+            );
+
             const data = await response.json();
 
             if (!response.ok) {
-                const validationError = data.errors?.email?.[0] || data.errors?.password?.[0];
-                throw new Error(validationError || data.message || "Unable to create your account.");
+                const validationError =
+                    data.errors?.email?.[0] ||
+                    data.errors?.password?.[0];
+
+                throw new Error(
+                    validationError ||
+                    data.message ||
+                    "Unable to create your account."
+                );
             }
 
             if (isCandidate) {
                 localStorage.setItem("auth_token", data.token);
-                localStorage.setItem("candidate_user", JSON.stringify(data.user));
-                window.location.href = "/candidate-dashboard";
+
+                localStorage.setItem(
+                    "candidate_user",
+                    JSON.stringify(data.user)
+                );
+
+                // GitHub Pages candidate dashboard
+                window.location.href =
+                    "/recruitment-system/candidate-dashboard";
+
             } else {
                 localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(data.user));
-                window.location.href = "/recruitment-system/hr-dashboard";
+
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(data.user)
+                );
+
+                // GitHub Pages HR dashboard
+                window.location.href =
+                    "/recruitment-system/hr-dashboard";
             }
+
         } catch (requestError) {
-            setError(requestError.message || "Unable to connect to the server.");
+            setError(
+                requestError.message ||
+                "Unable to connect to the server."
+            );
         } finally {
             setLoading(false);
         }
@@ -68,26 +107,155 @@ function Register({ accountType }) {
     return (
         <div className="register-page">
             <div className="register-card">
+
                 <div className="register-intro">
                     <span>HIRETRACK</span>
-                    <h1>{isCandidate ? "Start your next opportunity." : "Build your next team."}</h1>
-                    <p>{isCandidate ? "Create a candidate account and keep your applications in one place." : "Create an HR account to manage vacancies and candidates."}</p>
+
+                    <h1>
+                        {isCandidate
+                            ? "Start your next opportunity."
+                            : "Build your next team."}
+                    </h1>
+
+                    <p>
+                        {isCandidate
+                            ? "Create a candidate account and keep your applications in one place."
+                            : "Create an HR account to manage vacancies and candidates."}
+                    </p>
                 </div>
+
                 <div className="register-form-panel">
-                    <button className="register-back" type="button" onClick={() => window.location.href = "/"}>Back to home</button>
-                    <p className="register-eyebrow">CREATE {isCandidate ? "CANDIDATE" : "HR"} ACCOUNT</p>
+
+                    <button
+                        className="register-back"
+                        type="button"
+                        onClick={() =>
+                            window.location.href =
+                                "/recruitment-system/"
+                        }
+                    >
+                        Back to home
+                    </button>
+
+                    <p className="register-eyebrow">
+                        CREATE {isCandidate ? "CANDIDATE" : "HR"} ACCOUNT
+                    </p>
+
                     <h2>Join HireTrack</h2>
+
                     <form onSubmit={handleSubmit}>
-                        <label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
-                        <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-                        <label>Password<input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
-                        <label>Confirm password<input type={showPassword ? "text" : "password"} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required /></label>
-                        <p className="register-password-hint">At least 8 characters, with uppercase, lowercase, number and special character.</p>
-                        <label className="register-toggle"><input type="checkbox" checked={showPassword} onChange={(event) => setShowPassword(event.target.checked)} /> Show password</label>
-                        {error && <div className="register-error">{error}</div>}
-                        <button className="register-submit" type="submit" disabled={loading}>{loading ? "Creating account..." : "Create account"}</button>
+
+                        <label>
+                            Name
+
+                            <input
+                                value={name}
+                                onChange={(event) =>
+                                    setName(event.target.value)
+                                }
+                                required
+                            />
+                        </label>
+
+                        <label>
+                            Email
+
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(event) =>
+                                    setEmail(event.target.value)
+                                }
+                                required
+                            />
+                        </label>
+
+                        <label>
+                            Password
+
+                            <input
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
+                                value={password}
+                                onChange={(event) =>
+                                    setPassword(event.target.value)
+                                }
+                                required
+                            />
+                        </label>
+
+                        <label>
+                            Confirm password
+
+                            <input
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
+                                value={confirmation}
+                                onChange={(event) =>
+                                    setConfirmation(event.target.value)
+                                }
+                                required
+                            />
+                        </label>
+
+                        <p className="register-password-hint">
+                            At least 8 characters, with uppercase,
+                            lowercase, number and special character.
+                        </p>
+
+                        <label className="register-toggle">
+                            <input
+                                type="checkbox"
+                                checked={showPassword}
+                                onChange={(event) =>
+                                    setShowPassword(
+                                        event.target.checked
+                                    )
+                                }
+                            />
+                            Show password
+                        </label>
+
+                        {error && (
+                            <div className="register-error">
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            className="register-submit"
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading
+                                ? "Creating account..."
+                                : "Create account"}
+                        </button>
+
                     </form>
-                    <p className="register-login-link">Already registered? <button type="button" onClick={() => window.location.href = isCandidate ? "/candidate-login" : "/hr-login"}>Sign in</button></p>
+
+                    <p className="register-login-link">
+                        Already registered?
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                window.location.href =
+                                    isCandidate
+                                        ? "/recruitment-system/candidate-login"
+                                        : "/recruitment-system/hr-login"
+                            }
+                        >
+                            Sign in
+                        </button>
+                    </p>
+
                 </div>
             </div>
         </div>
