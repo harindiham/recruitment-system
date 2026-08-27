@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -31,17 +30,20 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./frontend
+        working-directory: frontend
         run: npm ci
 
-      - name: Build
-        working-directory: ./frontend
+      - name: Build React app
+        working-directory: frontend
         run: npm run build
 
-      - name: Upload GitHub Pages artifact
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./frontend/dist
+          path: frontend/dist
 
   deploy:
     environment:
