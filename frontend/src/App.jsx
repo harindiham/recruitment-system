@@ -42,8 +42,10 @@ function App() {
     }
 
     // HR DASHBOARD
-    if (path === "/hr-dashboard") {
-        const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (path === "/hr-dashboard"
+	path=="/recruitment-system/hr-dashboard") {
+       
+	 const user = JSON.parse(localStorage.getItem("user") || "null");
 
         if (user?.role !== "HR Manager") {
             navigate("/hr-login");
