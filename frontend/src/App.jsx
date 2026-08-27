@@ -8,7 +8,8 @@ import Register from "./pages/Register";
 import "./App.css";
 
 function App() {
-    const path = window.location.pathname;
+    const path =
+    window.location.pathname.replace("/recruitment-system", "") || "/";
 
     // =========================
     // HOME / LANDING PAGE
@@ -23,7 +24,7 @@ function App() {
     if (path === "/hr-dashboard") {
         const user = JSON.parse(localStorage.getItem("user") || "null");
         if (user?.role !== "HR Manager") {
-            window.location.replace("/hr-login");
+            window.location.replace("/recruitment-system/hr-login");
             return null;
         }
         return <HRDashboard />;
@@ -52,7 +53,7 @@ function App() {
     if (path === "/candidate-dashboard") {
         const user = JSON.parse(localStorage.getItem("candidate_user") || "null");
         if (user?.role !== "Candidate" || !user?.candidate_id) {
-            window.location.replace("/candidate-login");
+            window.location.replace("/recruitment-system/candidate-login");
             return null;
         }
         return <CandidateDashboard />;
