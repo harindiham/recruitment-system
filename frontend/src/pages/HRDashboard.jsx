@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import "./HRDashboard.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
-const STORAGE_URL = `${import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")}/storage`;
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://127.0.0.1:8001/api";
 
+const STORAGE_URL =
+    API_URL.replace(/\/api\/?$/, "") + "/storage";
+    
 function HRDashboard() {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
