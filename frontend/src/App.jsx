@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 import Login from "./pages/Login";
 import HRDashboard from "./pages/HRDashboard";
 import CandidateLogin from "./pages/CandidateLogin";
@@ -8,60 +10,76 @@ import Register from "./pages/Register";
 import "./App.css";
 
 function App() {
-    const path =
-    window.location.pathname.replace("/recruitment-system", "") || "/";
+    const getPath = () =>
+        window.location.pathname.replace("/recruitment-system", "") || "/";
 
-    // =========================
-    // HOME / LANDING PAGE
-    // =========================
+    const [path, setPath] = useState(getPath());
+
+    useEffect(() => {
+        const handlePopState = () => {
+            setPath(getPath());
+        };
+
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, []);
+
+    // HOME
     if (path === "/") {
         return <Home />;
     }
 
-    // =========================
-    // HR
-    // =========================
+    // HR DASHBOARD
     if (path === "/hr-dashboard") {
         const user = JSON.parse(localStorage.getItem("user") || "null");
+
         if (user?.role !== "HR Manager") {
             window.location.replace("/recruitment-system/hr-login");
             return null;
         }
+
         return <HRDashboard />;
     }
 
-    // HR login
+    // HR LOGIN
     if (path === "/hr-login") {
         return <Login />;
     }
 
+    // HR REGISTER
     if (path === "/register-hr") {
         return <Register accountType="hr" />;
     }
 
-    // =========================
-    // CANDIDATE
-    // =========================
+    // CANDIDATE LOGIN
     if (path === "/candidate-login") {
         return <CandidateLogin />;
     }
 
+    // CANDIDATE REGISTER
     if (path === "/register-candidate") {
         return <Register accountType="candidate" />;
     }
 
+    // CANDIDATE DASHBOARD
     if (path === "/candidate-dashboard") {
-        const user = JSON.parse(localStorage.getItem("candidate_user") || "null");
+        const user = JSON.parse(
+            localStorage.getItem("candidate_user") || "null"
+        );
+
         if (user?.role !== "Candidate" || !user?.candidate_id) {
-            window.location.replace("/recruitment-system/candidate-login");
+            window.location.replace(
+                "/recruitment-system/candidate-login"
+            );
             return null;
         }
+
         return <CandidateDashboard />;
     }
 
-    // =========================
-    // DEFAULT
-    // =========================
     return <Home />;
 }
 
