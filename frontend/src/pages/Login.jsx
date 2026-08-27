@@ -13,17 +13,20 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/login/hr`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/login/hr`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                    }),
+                }
+            );
 
             const data = await response.json();
 
@@ -40,11 +43,13 @@ function Login() {
 
             console.log("Logged in user:", data.user);
 
-            // Temporary redirect
+            // Redirect based on user role
             if (data.user.role === "HR Manager") {
-                window.location.href = "/hr-dashboard";
+                window.location.href =
+                    "/recruitment-system/hr-dashboard";
             } else {
-                window.location.href = "/";
+                window.location.href =
+                    "/recruitment-system/";
             }
 
         } catch (error) {
@@ -144,7 +149,9 @@ function Login() {
                                     type="password"
                                     placeholder="Enter your password"
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
                                     required
                                 />
                             </div>
@@ -160,14 +167,23 @@ function Login() {
                                 className="login-button"
                                 disabled={loading}
                             >
-                                {loading ? "Signing in..." : "Sign In"}
+                                {loading
+                                    ? "Signing in..."
+                                    : "Sign In"}
                             </button>
 
                         </form>
 
                         <div className="login-footer">
                             <span>Don't have an account?</span>
-                            <button type="button" onClick={() => window.location.href = "/recruitment-system/register-hr"}>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    window.location.href =
+                                        "/recruitment-system/register-hr"
+                                }
+                            >
                                 Create account
                             </button>
                         </div>
