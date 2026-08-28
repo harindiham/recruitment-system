@@ -145,13 +145,12 @@ function CandidateDashboard() {
        LOGOUT
     ========================================================= */
 
-    const handleLogout = () => {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("candidate_user");
+const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("candidate_user");
 
-        window.location.href =
-            "/candidate-login";
-    };
+    window.location.href = `${import.meta.env.BASE_URL}candidate-login`;
+};
 
 
     /* =========================================================
