@@ -5435,3 +5435,66 @@ background 0.2s ease,
     line-height: 1;
     font-weight: 400;
 }
+.vacancy-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.close-vacancy-btn,
+.delete-vacancy-btn {
+  height: 58px;
+  padding: 0 28px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Close Vacancy */
+.close-vacancy-btn {
+  background: transparent;
+  border: 1px solid #555;
+  color: #ffffff;
+}
+
+.close-vacancy-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Delete Vacancy */
+.delete-vacancy-btn {
+  background: transparent;
+  border: 1px solid #e05b5b;
+  color: #f06b6b;
+  gap: 10px;
+}
+
+.delete-vacancy-btn:hover {
+  background: rgba(224, 91, 91, 0.1);
+  transform: translateY(-1px);
+}
+
+.delete-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(128, 92, 180, 0.2);
+  color: #f06b6b;
+
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}

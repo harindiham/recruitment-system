@@ -2484,23 +2484,22 @@ function HRDashboard() {
 
                                     <div className="vacancy-details-actions">
 
-                                        <button
-                                            type="button"
-                                            className="close-details-button"
-                                            onClick={() =>
-                                                setSelectedVacancy(null)
-                                            }
-                                        >
-                                            Close
-                                        </button>
+   <div className="vacancy-actions">
+  <button
+    className="close-vacancy-btn"
+    onClick={() => handleCloseVacancy(vacancy.id)}
+  >
+    Close Vacancy
+  </button>
 
-\<button
+  <button
     className="delete-vacancy-btn"
-    onClick={() => handleDelete(job.id)}
->
+    onClick={() => handleDeleteVacancy(vacancy.id)}
+  >
     <span className="delete-icon">×</span>
     Delete Vacancy
-</button>
+  </button>
+</div>
 
                                     </div>
 
