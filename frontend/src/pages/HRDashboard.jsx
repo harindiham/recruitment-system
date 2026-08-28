@@ -7,7 +7,7 @@ const API_URL =
 
 const STORAGE_URL =
     API_URL.replace(/\/api\/?$/, "") + "/storage";
-    
+
 function HRDashboard() {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
@@ -851,12 +851,12 @@ function HRDashboard() {
     // LOGOUT
     // =========================================================
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+   const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-        window.location.href = "/";
-    };
+    window.location.href = import.meta.env.BASE_URL;
+};
 
     // =========================================================
     // REFRESH
