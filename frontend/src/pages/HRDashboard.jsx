@@ -2494,17 +2494,13 @@ function HRDashboard() {
                                             Close
                                         </button>
 
-                                        <button
-                                            type="button"
-                                            className="delete-vacancy-button"
-                                            onClick={() =>
-                                                deleteVacancy(
-                                                    selectedVacancy.id
-                                                )
-                                            }
-                                        >
-                                            Delete Vacancy
-                                        </button>
+\<button
+    className="delete-vacancy-btn"
+    onClick={() => handleDelete(job.id)}
+>
+    <span className="delete-icon">×</span>
+    Delete Vacancy
+</button>
 
                                     </div>
 
