@@ -851,12 +851,12 @@ function HRDashboard() {
     // LOGOUT
     // =========================================================
 
-   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
 
-    window.location.href = import.meta.env.BASE_URL;
-};
+        window.location.href = import.meta.env.BASE_URL;
+    };
 
     // =========================================================
     // REFRESH
@@ -2484,22 +2484,29 @@ function HRDashboard() {
 
                                     <div className="vacancy-details-actions">
 
-   <div className="vacancy-actions">
-  <button
-    className="close-vacancy-btn"
-    onClick={() => handleCloseVacancy(vacancy.id)}
-  >
-    Close Vacancy
-  </button>
+                                        <button
+                                            type="button"
+                                            className="close-details-button"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                                setSelectedVacancy(null);
+                                            }}
+                                        >
+                                            Close
+                                        </button>
 
-  <button
-    className="delete-vacancy-btn"
-    onClick={() => handleDeleteVacancy(vacancy.id)}
-  >
-    <span className="delete-icon">×</span>
-    Delete Vacancy
-  </button>
-</div>
+                                        <button
+                                            type="button"
+                                            className="delete-vacancy-button"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                                deleteVacancy(selectedVacancy.id);
+                                            }}
+                                        >
+                                            Delete Vacancy
+                                        </button>
 
                                     </div>
 
