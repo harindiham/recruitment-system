@@ -2,32 +2,54 @@ import { useEffect, useState } from "react";
 import "./CandidateDashboard.css";
 
 function CandidateDashboard() {
+    /* =========================================================
+       STATE
+    ========================================================= */
+
     const [user, setUser] = useState(null);
+
     const [jobs, setJobs] = useState([]);
     const [loadingJobs, setLoadingJobs] = useState(true);
     const [error, setError] = useState("");
+
     const [selectedJob, setSelectedJob] = useState(null);
 
     const [cv, setCv] = useState(null);
     const [candidateProfile, setCandidateProfile] = useState(null);
+
     const [uploadingCV, setUploadingCV] = useState(false);
     const [applying, setApplying] = useState(false);
-    const [applicationMessage, setApplicationMessage] = useState("");
+
+    const [applicationMessage, setApplicationMessage] =
+        useState("");
+
     const [applications, setApplications] = useState([]);
 
     const [phone, setPhone] = useState("");
     const [linkedin, setLinkedin] = useState("");
 
-    const API_URL = "http://127.0.0.1:8001/api";
+    const [activeSection, setActiveSection] =
+        useState("opportunities");
 
-    /*
-    =========================================================
-    INITIAL LOAD
-    =========================================================
-    */
+    const [darkMode, setDarkMode] = useState(() => {
+        const savedTheme =
+            localStorage.getItem("candidate_theme");
+
+        return savedTheme === "dark";
+    });
+
+    const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://127.0.0.1:8001/api";
+
+
+    /* =========================================================
+       INITIAL LOAD
+    ========================================================= */
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("candidate_user");
+        const storedUser =
+            localStorage.getItem("candidate_user");
 
         if (storedUser) {
             try {
@@ -45,11 +67,22 @@ function CandidateDashboard() {
         fetchApplications();
     }, []);
 
-    /*
-    =========================================================
-    FETCH JOB VACANCIES
-    =========================================================
-    */
+
+    /* =========================================================
+       DARK / LIGHT MODE
+    ========================================================= */
+
+    useEffect(() => {
+        localStorage.setItem(
+            "candidate_theme",
+            darkMode ? "dark" : "light"
+        );
+    }, [darkMode]);
+
+
+    /* =========================================================
+       FETCH JOB VACANCIES
+    ========================================================= */
 
     const fetchJobs = async () => {
         setLoadingJobs(true);
@@ -107,40 +140,56 @@ function CandidateDashboard() {
         }
     };
 
-    /*
-    =========================================================
-    LOGOUT
-    =========================================================
-    */
+
+    /* =========================================================
+       LOGOUT
+    ========================================================= */
 
     const handleLogout = () => {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("candidate_user");
 
-        window.location.href = `${import.meta.env.BASE_URL}candidate-login`;
+        window.location.href =
+            "/recruitment-system/candidate-login";
     };
 
-    /*
-    =========================================================
-    VIEW JOB DETAILS
-    =========================================================
-    */
+
+    /* =========================================================
+       NAVIGATION
+    ========================================================= */
+
+    const handleNavigation = (section) => {
+        setActiveSection(section);
+
+        setSelectedJob(null);
+        setApplicationMessage("");
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+
+    /* =========================================================
+       VIEW JOB DETAILS
+    ========================================================= */
 
     const handleViewJob = (job) => {
         setApplicationMessage("");
         setSelectedJob(job);
     };
 
+
     const handleCloseJob = () => {
         setSelectedJob(null);
         setApplicationMessage("");
     };
 
-    /*
-    =========================================================
-    FETCH CANDIDATE CV
-    =========================================================
-    */
+
+    /* =========================================================
+       FETCH CANDIDATE CV
+    ========================================================= */
 
     const fetchCandidateCV = async () => {
         try {
@@ -179,6 +228,8 @@ function CandidateDashboard() {
 
             if (cvs.length > 0) {
                 setCv(cvs[0]);
+            } else {
+                setCv(null);
             }
 
             setPhone(
@@ -196,11 +247,10 @@ function CandidateDashboard() {
         }
     };
 
-    /*
-    =========================================================
-    FETCH APPLICATIONS
-    =========================================================
-    */
+
+    /* =========================================================
+       FETCH APPLICATIONS
+    ========================================================= */
 
     const fetchApplications = async () => {
         try {
@@ -232,27 +282,6 @@ function CandidateDashboard() {
                 );
             }
 
-            /*
-             * Laravel can return:
-             *
-             * [
-             *   {...},
-             *   {...}
-             * ]
-             *
-             * OR:
-             *
-             * {
-             *   applications: [...]
-             * }
-             *
-             * OR:
-             *
-             * {
-             *   data: [...]
-             * }
-             */
-
             let applicationData = [];
 
             if (Array.isArray(data)) {
@@ -279,34 +308,19 @@ function CandidateDashboard() {
         }
     };
 
-    /*
-    =========================================================
-    GET JOB FOR APPLICATION
-    =========================================================
-    */
+
+    /* =========================================================
+       GET JOB FOR APPLICATION
+    ========================================================= */
 
     const getApplicationJob = (application) => {
-        /*
-         * Laravel Eloquent may serialize the
-         * relationship as job_position.
-         */
-
         if (application?.job_position) {
             return application.job_position;
         }
 
-        /*
-         * Some responses may use jobPosition.
-         */
-
         if (application?.jobPosition) {
             return application.jobPosition;
         }
-
-        /*
-         * If the relationship wasn't included,
-         * find the job from the vacancies already loaded.
-         */
 
         if (application?.job_position_id) {
             return jobs.find(
@@ -321,11 +335,10 @@ function CandidateDashboard() {
         return null;
     };
 
-    /*
-    =========================================================
-    APPLICATION STATUS
-    =========================================================
-    */
+
+    /* =========================================================
+       APPLICATION STATUS
+    ========================================================= */
 
     const applicationSteps = [
         {
@@ -349,6 +362,7 @@ function CandidateDashboard() {
             label: "Final Decision",
         },
     ];
+
 
     const getStatusIndex = (status) => {
         if (!status) return 0;
@@ -385,11 +399,10 @@ function CandidateDashboard() {
         }
     };
 
-    /*
-    =========================================================
-    FORMAT DATE
-    =========================================================
-    */
+
+    /* =========================================================
+       FORMAT DATE
+    ========================================================= */
 
     const formatApplicationDate = (date) => {
         if (!date) {
@@ -412,11 +425,10 @@ function CandidateDashboard() {
         );
     };
 
-    /*
-    =========================================================
-    CHECK WHETHER CANDIDATE ALREADY APPLIED
-    =========================================================
-    */
+
+    /* =========================================================
+       CHECK WHETHER CANDIDATE ALREADY APPLIED
+    ========================================================= */
 
     const hasAppliedToJob = (jobId) => {
         return applications.some(
@@ -427,11 +439,10 @@ function CandidateDashboard() {
         );
     };
 
-    /*
-    =========================================================
-    UPLOAD / REPLACE CV
-    =========================================================
-    */
+
+    /* =========================================================
+       UPLOAD / REPLACE CV
+    ========================================================= */
 
     const handleCVSelect = async (event) => {
         const file =
@@ -479,6 +490,8 @@ function CandidateDashboard() {
             setApplicationMessage(
                 "Please enter your phone number before uploading your CV."
             );
+
+            setActiveSection("profile");
 
             event.target.value = "";
             return;
@@ -573,11 +586,10 @@ function CandidateDashboard() {
         }
     };
 
-    /*
-    =========================================================
-    APPLY FOR JOB
-    =========================================================
-    */
+
+    /* =========================================================
+       APPLY FOR JOB
+    ========================================================= */
 
     const handleApply = async () => {
         if (!selectedJob) return;
@@ -667,139 +679,202 @@ function CandidateDashboard() {
         }
     };
 
-    /*
-    =========================================================
-    RENDER
-    =========================================================
-    */
 
-    return (
-        <div className="candidate-dashboard">
+    /* =========================================================
+       PROFILE VIEW
+    ========================================================= */
 
-            {/* =========================================
-                HEADER
-            ========================================= */}
+    const renderProfile = () => {
+        return (
+            <section className="candidate-page-section">
 
-            <header className="candidate-dashboard-header">
-
-                <div>
-                    <p className="candidate-eyebrow">
-                        CANDIDATE PORTAL
-                    </p>
-
-                    <h1>
-                        Welcome back,{" "}
-                        {user?.name ||
-                            "Candidate"}
-                    </h1>
-                </div>
-
-                <button
-                    className="candidate-logout-button"
-                    onClick={handleLogout}
-                >
-                    Logout
-                </button>
-
-            </header>
-
-
-            {/* =========================================
-                PROFILE
-            ========================================= */}
-
-            <section className="candidate-section">
-
-                <div className="candidate-section-heading">
-
+                <div className="candidate-page-heading">
                     <p>PROFILE</p>
 
-                    <h2>My Profile</h2>
+                    <h1>My Profile</h1>
 
+                    <span>
+                        Manage your candidate profile
+                        and uploaded CV.
+                    </span>
                 </div>
+
+
+                {/* PROFILE CARD */}
 
                 <div className="candidate-profile-card">
 
-                    <div>
+                    <div className="profile-info-item">
                         <span>Name</span>
 
                         <strong>
                             {user?.name ||
+                                candidateProfile?.full_name ||
                                 "Not available"}
                         </strong>
                     </div>
 
-                    <div>
+
+                    <div className="profile-info-item">
                         <span>Email</span>
 
                         <strong>
                             {user?.email ||
+                                candidateProfile?.email ||
                                 "Not available"}
                         </strong>
                     </div>
 
+
+                    <div className="profile-info-item">
+                        <span>Phone</span>
+
+                        <input
+                            type="text"
+                            value={phone}
+                            onChange={(e) =>
+                                setPhone(
+                                    e.target.value
+                                )
+                            }
+                            placeholder="Enter phone number"
+                            className="profile-input"
+                        />
+                    </div>
+
+
+                    <div className="profile-info-item">
+                        <span>LinkedIn</span>
+
+                        <input
+                            type="url"
+                            value={linkedin}
+                            onChange={(e) =>
+                                setLinkedin(
+                                    e.target.value
+                                )
+                            }
+                            placeholder="LinkedIn profile URL"
+                            className="profile-input"
+                        />
+                    </div>
+
                 </div>
 
-            </section>
 
+                {/* CV */}
 
-            {/* =========================================
-                MY CV
-            ========================================= */}
+                <div className="profile-subsection">
 
-            <section className="candidate-section">
+                    <div className="candidate-page-heading small">
 
-                <div className="candidate-section-heading">
+                        <p>DOCUMENTS</p>
 
-                    <p>DOCUMENTS</p>
-
-                    <h2>My CV</h2>
-
-                </div>
-
-                <div className="candidate-cv-card">
-
-                    <div>
-
-                        <span>
-                            Uploaded CV
-                        </span>
-
-                        <strong>
-                            {cv?.file_name ||
-                                "No CV uploaded"}
-                        </strong>
+                        <h2>My CV</h2>
 
                     </div>
 
-                    <p>
-                        Your CV will be used when
-                        applying for vacancies.
-                    </p>
+
+                    <div className="candidate-cv-card">
+
+                        <div className="cv-file-icon">
+                            PDF
+                        </div>
+
+                        <div className="cv-file-content">
+
+                            <span>
+                                Uploaded CV
+                            </span>
+
+                            <strong>
+                                {cv?.file_name ||
+                                    "No CV uploaded yet"}
+                            </strong>
+
+                            <p>
+                                Your CV will be used
+                                when applying for
+                                vacancies.
+                            </p>
+
+                        </div>
+
+
+                        <div className="cv-actions">
+
+                            <button
+                                type="button"
+                                className="upload-cv-button"
+                                disabled={
+                                    uploadingCV
+                                }
+                                onClick={() =>
+                                    document
+                                        .getElementById(
+                                            "profile-cv-upload"
+                                        )
+                                        ?.click()
+                                }
+                            >
+                                {uploadingCV
+                                    ? "Uploading..."
+                                    : cv
+                                    ? "Replace CV"
+                                    : "Upload CV"}
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <input
+                        id="profile-cv-upload"
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        style={{
+                            display: "none",
+                        }}
+                        onChange={
+                            handleCVSelect
+                        }
+                    />
 
                 </div>
 
+
+                {applicationMessage && (
+                    <div className="application-message">
+                        {applicationMessage}
+                    </div>
+                )}
+
             </section>
+        );
+    };
 
 
-            {/* =========================================
-                AVAILABLE OPPORTUNITIES
-            ========================================= */}
+    /* =========================================================
+       OPPORTUNITIES VIEW
+    ========================================================= */
 
-            <section className="candidate-section">
+    const renderOpportunities = () => {
+        return (
+            <section className="candidate-page-section">
 
-                <div className="candidate-section-heading">
+                <div className="candidate-page-heading">
 
                     <p>RECRUITMENT</p>
 
-                    <h2>
+                    <h1>
                         Available Opportunities
-                    </h2>
+                    </h1>
 
                     <span>
                         Explore vacancies currently
-                        available and find the right
-                        opportunity for you.
+                        available and find the
+                        right opportunity for you.
                     </span>
 
                 </div>
@@ -895,11 +970,12 @@ function CandidateDashboard() {
 
                                     <div className="candidate-job-card-bottom">
 
-                                        <div className="candidate-count">
+                                        <div >
                                             <span>
                                                 OPEN POSITION
                                             </span>
                                         </div>
+
 
                                         <button
                                             className="candidate-details-button"
@@ -923,23 +999,27 @@ function CandidateDashboard() {
                     )}
 
             </section>
+        );
+    };
 
 
-            {/* =========================================
-                MY APPLICATIONS
-            ========================================= */}
+    /* =========================================================
+       APPLICATIONS VIEW
+    ========================================================= */
 
-            <section className="candidate-section">
+    const renderApplications = () => {
+        return (
+            <section className="candidate-page-section">
 
-                <div className="candidate-section-heading">
+                <div className="candidate-page-heading">
 
                     <p>
                         RECRUITMENT JOURNEY
                     </p>
 
-                    <h2>
+                    <h1>
                         My Applications
-                    </h2>
+                    </h1>
 
                     <span>
                         Track the progress of every
@@ -951,9 +1031,33 @@ function CandidateDashboard() {
 
                 {applications.length === 0 ? (
 
-                    <div className="candidate-message">
-                        Your applications will appear
-                        here.
+                    <div className="candidate-empty-state">
+
+                        <div className="empty-icon">
+                            ✓
+                        </div>
+
+                        <h3>
+                            No applications yet
+                        </h3>
+
+                        <p>
+                            Your applications will
+                            appear here once you apply
+                            for a vacancy.
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                handleNavigation(
+                                    "opportunities"
+                                )
+                            }
+                        >
+                            Browse Opportunities
+                        </button>
+
                     </div>
 
                 ) : (
@@ -982,8 +1086,6 @@ function CandidateDashboard() {
                                         }
                                     >
 
-                                        {/* HEADER */}
-
                                         <div className="candidate-application-header">
 
                                             <div>
@@ -1000,6 +1102,7 @@ function CandidateDashboard() {
 
                                             </div>
 
+
                                             <span className="application-status-badge">
                                                 {applicationSteps[
                                                     currentStatus
@@ -1009,8 +1112,6 @@ function CandidateDashboard() {
 
                                         </div>
 
-
-                                        {/* DETAILS */}
 
                                         <div className="candidate-application-info">
 
@@ -1050,8 +1151,6 @@ function CandidateDashboard() {
                                         </div>
 
 
-                                        {/* STATUS JOURNEY */}
-
                                         <div className="application-progress">
 
                                             {applicationSteps.map(
@@ -1064,12 +1163,20 @@ function CandidateDashboard() {
                                                         index <=
                                                         currentStatus;
 
+                                                    const active =
+                                                        index ===
+                                                        currentStatus;
+
                                                     return (
 
                                                         <div
                                                             className={`application-step ${
                                                                 completed
                                                                     ? "completed"
+                                                                    : ""
+                                                            } ${
+                                                                active
+                                                                    ? "active"
                                                                     : ""
                                                             }`}
                                                             key={
@@ -1092,6 +1199,7 @@ function CandidateDashboard() {
                                                         </div>
 
                                                     );
+
                                                 }
                                             )}
 
@@ -1100,6 +1208,7 @@ function CandidateDashboard() {
                                     </div>
 
                                 );
+
                             }
                         )}
 
@@ -1108,52 +1217,58 @@ function CandidateDashboard() {
                 )}
 
             </section>
+        );
+    };
 
 
-            {/* =========================================
-                JOB DETAILS MODAL
-            ========================================= */}
+    /* =========================================================
+       JOB DETAILS MODAL
+    ========================================================= */
 
-            {selectedJob && (
+    const renderJobModal = () => {
+        if (!selectedJob) {
+            return null;
+        }
+
+        const alreadyApplied =
+            hasAppliedToJob(
+                selectedJob.id
+            );
+
+        return (
+
+            <div
+                className="job-modal-overlay"
+                onClick={handleCloseJob}
+            >
 
                 <div
-                    className="job-modal-overlay"
-                    onClick={handleCloseJob}
+                    className="job-modal"
+                    onClick={(e) =>
+                        e.stopPropagation()
+                    }
                 >
 
-                    <div
-                        className="job-modal"
-                        onClick={(e) =>
-                            e.stopPropagation()
-                        }
+                    <button
+                        className="job-modal-close"
+                        onClick={handleCloseJob}
+                        aria-label="Close"
                     >
-
-                        {/* CLOSE */}
-
-                        <button
-                            className="job-modal-close"
-                            onClick={handleCloseJob}
-                        >
-                            ×
-                        </button>
+                        ×
+                    </button>
 
 
-                        {/* DEPARTMENT */}
+                    <div className="job-modal-header">
 
                         <p className="job-modal-department">
                             {selectedJob.department ||
                                 "Department"}
                         </p>
 
-
-                        {/* TITLE */}
-
                         <h2>
                             {selectedJob.title}
                         </h2>
 
-
-                        {/* TAGS */}
 
                         <div className="job-modal-tags">
 
@@ -1173,8 +1288,10 @@ function CandidateDashboard() {
 
                         </div>
 
+                    </div>
 
-                        {/* DESCRIPTION */}
+
+                    <div className="job-modal-content">
 
                         <div className="job-modal-section">
 
@@ -1190,8 +1307,6 @@ function CandidateDashboard() {
                         </div>
 
 
-                        {/* RESPONSIBILITIES */}
-
                         <div className="job-modal-section">
 
                             <h3>
@@ -1206,8 +1321,6 @@ function CandidateDashboard() {
                         </div>
 
 
-                        {/* CV */}
-
                         <div className="job-modal-section">
 
                             <h3>
@@ -1219,29 +1332,34 @@ function CandidateDashboard() {
 
                                 <div className="uploaded-cv-box">
 
-                                    <p className="job-cv-name">
-                                        {cv.file_name}
-                                    </p>
+                                    <div className="uploaded-cv-icon">
+                                        PDF
+                                    </div>
 
-                                    <span className="cv-status">
-                                        CV uploaded
-                                    </span>
+                                    <div>
+
+                                        <p className="job-cv-name">
+                                            {cv.file_name}
+                                        </p>
+
+                                        <span className="cv-status">
+                                            CV uploaded
+                                        </span>
+
+                                    </div>
 
                                 </div>
 
                             ) : (
 
-                                <p className="job-cv-name">
+                                <div className="no-cv-message">
                                     No CV uploaded yet.
-                                </p>
+                                </div>
 
                             )}
 
 
-                            {/* CONTACT INFORMATION */}
-
-                            {!phone &&
-                                !candidateProfile?.phone && (
+                            {!candidateProfile?.phone && (
 
                                     <div className="candidate-contact-fields">
 
@@ -1260,7 +1378,6 @@ function CandidateDashboard() {
                                             placeholder="Enter your phone number"
                                             className="candidate-modal-input"
                                         />
-
 
                                         <label>
                                             LinkedIn URL
@@ -1283,8 +1400,6 @@ function CandidateDashboard() {
                                 )}
 
 
-                            {/* UPLOAD BUTTON */}
-
                             <button
                                 className="upload-cv-button"
                                 type="button"
@@ -1299,13 +1414,11 @@ function CandidateDashboard() {
                                         ?.click()
                                 }
                             >
-
                                 {uploadingCV
                                     ? "Uploading..."
                                     : cv
                                     ? "Replace CV"
                                     : "Upload CV"}
-
                             </button>
 
 
@@ -1324,8 +1437,6 @@ function CandidateDashboard() {
                         </div>
 
 
-                        {/* APPLY BUTTON */}
-
                         <button
                             className="apply-job-button"
                             type="button"
@@ -1333,17 +1444,13 @@ function CandidateDashboard() {
                             disabled={
                                 applying ||
                                 !cv ||
-                                hasAppliedToJob(
-                                    selectedJob.id
-                                )
+                                alreadyApplied
                             }
                         >
 
                             {applying
                                 ? "Applying..."
-                                : hasAppliedToJob(
-                                      selectedJob.id
-                                  )
+                                : alreadyApplied
                                 ? "Already Applied"
                                 : !cv
                                 ? "Upload CV to Apply"
@@ -1364,7 +1471,299 @@ function CandidateDashboard() {
 
                 </div>
 
-            )}
+            </div>
+
+        );
+    };
+
+
+    /* =========================================================
+       MAIN RENDER
+    ========================================================= */
+
+    return (
+
+        <div
+            className={`candidate-dashboard ${
+                darkMode
+                    ? "theme-dark"
+                    : "theme-light"
+            }`}
+        >
+
+            {/* =================================================
+               SIDEBAR
+            ================================================= */}
+
+            <aside className="candidate-sidebar">
+
+                <div className="candidate-brand">
+
+                    <div className="brand-mark">
+                        A
+                    </div>
+
+                    <span>
+                        Altrium MG
+                    </span>
+
+                </div>
+
+
+                <div className="sidebar-section">
+
+                    <p className="sidebar-label">
+                        HOME
+                    </p>
+
+
+                    <button
+                        className={`sidebar-item ${
+                            activeSection ===
+                            "profile"
+                                ? "active"
+                                : ""
+                        }`}
+                        onClick={() =>
+                            handleNavigation(
+                                "profile"
+                            )
+                        }
+                    >
+
+                        <span className="sidebar-icon">
+                            ◇
+                        </span>
+
+                        <span>
+                            My Profile
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        className={`sidebar-item ${
+                            activeSection ===
+                            "opportunities"
+                                ? "active"
+                                : ""
+                        }`}
+                        onClick={() =>
+                            handleNavigation(
+                                "opportunities"
+                            )
+                        }
+                    >
+
+                        <span className="sidebar-icon">
+                            ◇
+                        </span>
+
+                        <span>
+                            Available Opportunities
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        className={`sidebar-item ${
+                            activeSection ===
+                            "applications"
+                                ? "active"
+                                : ""
+                        }`}
+                        onClick={() =>
+                            handleNavigation(
+                                "applications"
+                            )
+                        }
+                    >
+
+                        <span className="sidebar-icon">
+                            ◇
+                        </span>
+
+                        <span>
+                            My Applications
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <div className="sidebar-divider" />
+
+
+                <div className="sidebar-section">
+
+                    <p className="sidebar-label">
+                        ACCOUNT
+                    </p>
+
+
+                    <button
+                        className="sidebar-item logout-sidebar"
+                        onClick={
+                            handleLogout
+                        }
+                    >
+
+                        <span className="sidebar-icon">
+                            ↪
+                        </span>
+
+                        <span>
+                            Logout
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <div className="sidebar-footer">
+
+                    <div className="sidebar-user">
+
+                        <div className="sidebar-avatar">
+                            {user?.name
+                                ?.charAt(0)
+                                ?.toUpperCase() ||
+                                "C"}
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                {user?.name ||
+                                    "Candidate"}
+                            </strong>
+
+                            <span>
+                                Candidate
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+
+            {/* =================================================
+               MAIN AREA
+            ================================================= */}
+
+            <main className="candidate-main">
+
+                {/* TOP BAR */}
+
+                <header className="candidate-topbar">
+
+                    <div className="candidate-breadcrumb">
+
+                        <span>
+                            Candidate Portal
+                        </span>
+
+                        <span className="breadcrumb-divider">
+                            /
+                        </span>
+
+                        <strong>
+                            {activeSection ===
+                                "profile"
+                                ? "My Profile"
+                                : activeSection ===
+                                  "applications"
+                                ? "My Applications"
+                                : "Available Opportunities"}
+                        </strong>
+
+                    </div>
+
+
+                    <div className="candidate-topbar-actions">
+
+                        <button
+                            className="theme-toggle"
+                            onClick={() =>
+                                setDarkMode(
+                                    !darkMode
+                                )
+                            }
+                            aria-label="Toggle theme"
+                        >
+
+                            <span>
+                                {darkMode
+                                    ? "☀"
+                                    : "☾"}
+                            </span>
+
+                            <span>
+                                {darkMode
+                                    ? "Light"
+                                    : "Dark"}
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </header>
+
+
+                {/* PAGE HEADER */}
+
+                <div className="candidate-welcome">
+
+                    <div>
+
+                        <p className="candidate-eyebrow">
+                            CANDIDATE PORTAL
+                        </p>
+
+                        <h1>
+                            Welcome back,{" "}
+                            {user?.name ||
+                                "Candidate"}
+                        </h1>
+
+                    </div>
+
+                </div>
+
+
+                {/* PAGE CONTENT */}
+
+                <div className="candidate-content">
+
+                    {activeSection ===
+                        "profile" &&
+                        renderProfile()}
+
+                    {activeSection ===
+                        "opportunities" &&
+                        renderOpportunities()}
+
+                    {activeSection ===
+                        "applications" &&
+                        renderApplications()}
+
+                </div>
+
+            </main>
+
+
+            {/* JOB MODAL */}
+
+            {renderJobModal()}
 
         </div>
     );
