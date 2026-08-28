@@ -4,6 +4,9 @@ import "./Register.css";
 const passwordRule =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
+const emailRule =
+    /^[A-Za-z0-9._%+-]+@(gmail\.com|outlook\.com)$/i;
+
 function Register({ accountType }) {
     const isCandidate = accountType === "candidate";
 
@@ -19,6 +22,15 @@ function Register({ accountType }) {
         event.preventDefault();
         setError("");
 
+        // Check email format and allowed domains
+        if (!emailRule.test(email.trim())) {
+            setError(
+                "Please enter a valid Gmail or Outlook email address."
+            );
+            return;
+        }
+
+        // Check password requirements
         if (!passwordRule.test(password)) {
             setError(
                 "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
@@ -26,6 +38,7 @@ function Register({ accountType }) {
             return;
         }
 
+        // Check password confirmation
         if (password !== confirmation) {
             setError("Passwords do not match.");
             return;
@@ -47,8 +60,8 @@ function Register({ accountType }) {
                         Accept: "application/json",
                     },
                     body: JSON.stringify({
-                        name,
-                        email,
+                        name: name.trim(),
+                        email: email.trim().toLowerCase(),
                         password,
                         password_confirmation: confirmation,
                     }),
@@ -70,30 +83,32 @@ function Register({ accountType }) {
             }
 
             if (isCandidate) {
-                localStorage.setItem("auth_token", data.token);
+                localStorage.setItem(
+                    "auth_token",
+                    data.token
+                );
 
                 localStorage.setItem(
                     "candidate_user",
                     JSON.stringify(data.user)
                 );
 
-                // GitHub Pages candidate dashboard
                 window.location.href =
                     "/recruitment-system/candidate-dashboard";
-
             } else {
-                localStorage.setItem("token", data.token);
+                localStorage.setItem(
+                    "token",
+                    data.token
+                );
 
                 localStorage.setItem(
                     "user",
                     JSON.stringify(data.user)
                 );
 
-                // GitHub Pages HR dashboard
                 window.location.href =
                     "/recruitment-system/hr-dashboard";
             }
-
         } catch (requestError) {
             setError(
                 requestError.message ||
@@ -138,7 +153,9 @@ function Register({ accountType }) {
                     </button>
 
                     <p className="register-eyebrow">
-                        CREATE {isCandidate ? "CANDIDATE" : "HR"} ACCOUNT
+                        CREATE {isCandidate
+                            ? "CANDIDATE"
+                            : "HR"} ACCOUNT
                     </p>
 
                     <h2>Join HireTrack</h2>
@@ -147,7 +164,6 @@ function Register({ accountType }) {
 
                         <label>
                             Name
-
                             <input
                                 value={name}
                                 onChange={(event) =>
@@ -159,20 +175,19 @@ function Register({ accountType }) {
 
                         <label>
                             Email
-
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(event) =>
                                     setEmail(event.target.value)
                                 }
+                                placeholder="example@gmail.com"
                                 required
                             />
                         </label>
 
                         <label>
                             Password
-
                             <input
                                 type={
                                     showPassword
@@ -189,7 +204,6 @@ function Register({ accountType }) {
 
                         <label>
                             Confirm password
-
                             <input
                                 type={
                                     showPassword
@@ -241,7 +255,7 @@ function Register({ accountType }) {
                     </form>
 
                     <p className="register-login-link">
-                        Already registered?
+                        Already registered?{" "}
 
                         <button
                             type="button"
