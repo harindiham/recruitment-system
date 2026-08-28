@@ -1359,8 +1359,7 @@ function CandidateDashboard() {
                             )}
 
 
-                            {!phone &&
-                                !candidateProfile?.phone && (
+                            {!candidateProfile?.phone && (
 
                                     <div className="candidate-contact-fields">
 
